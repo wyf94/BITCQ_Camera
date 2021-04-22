@@ -3,6 +3,9 @@
 #include<opencv2/opencv.hpp>
 #include<opencv2/highgui.hpp>
 #include<opencv2/imgproc.hpp>
+#include <linux/videodev2.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
 
 #include <algorithm>
 #include <iostream>
@@ -23,9 +26,11 @@ public:
 
     typedef struct
     {
-        std::string name;
+        std::string deviceType;
+        std::string address;
         int width;
         int height;
+        int fps;
         pixel_format format;
     } CameraInfo;
 
@@ -37,9 +42,13 @@ public:
 
     void RosInit();
     void Spin();
+    void CameraInit();
+    void GetImage();
 
     ros::Time time;
     CameraInfo cameraInfo;
+    std::string format;
+    std::string deviceType;
 
 private:
     pixel_format String2Enum(std::string);

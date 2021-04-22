@@ -1,8 +1,13 @@
 <launch>
     <node name="gmsl_camera" pkg="gmsl_camera" type="gmsl_camera_node" output="screen" >
-        <param name="video_device" type="string" value="/dev/video0">
-        <param name="image_width" type="int" value="1920" />
-        <param name="image_height" type="int" value="1080" />
-        <param name="pixel_format" type="string" value="uyvy" />
+        <!--device_type: gmsl  usb  rtsp other-->
+        <param name="device_type" value="gmsl"/>
+        <!--device_address: device's hardware io address which built in /dev/-->
+        <param name="device_address" value="/dev/video0"/>
+        <param name="image_width" value="1920" />
+        <param name="image_height" value="1080" />
+        <param name="fps" value="30"/>
+        <!--pixel_format: yuyv uyvy mjpeg yuvmoni10 rgb24 grey other-->
+        <param name="pixel_format" value="uyvy" />
     </node>
 </launch>
