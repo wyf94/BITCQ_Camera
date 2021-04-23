@@ -6,7 +6,5 @@ int main(int argc, char **argv)
 
     gmsl_camera Camera;
 
-    Camera.RosInit();
-    Camera.CameraInit();
-    Camera.Spin();
+    Camera.Open();
 }

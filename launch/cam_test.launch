@@ -1,8 +1,8 @@
 <launch>
     <node name="gmsl_camera" pkg="gmsl_camera" type="gmsl_camera_node" output="screen" >
-        <!--device_type: gmsl  usb  rtsp other-->
+        <!--device_type: gmsl  usb  rtsp  hik_sdk-->
         <param name="device_type" value="gmsl"/>
-        <!--device_address: device's hardware io address which built in /dev/-->
+        <!--device_address: device's hardware io address : "/dev/video0" "rtsp://...." "192.168.1.1"-->
         <param name="device_address" value="/dev/video0"/>
         <param name="image_width" value="1920" />
         <param name="image_height" value="1080" />
