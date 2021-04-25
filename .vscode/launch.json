@@ -1,0 +1,43 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+//          "preLaunchTask": "catkin_make: build",
+            "name": "ROS: Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/home/nvidia/ros_ws/devel/lib/gmsl_camera/gmsl_camera_node",
+            "args": ["device_type=gmsl device_address=/dev/video0 image_width=1920 image_height=1080 fps=30 pixel_format=uyvy"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
+
+// {
+//     // Use IntelliSense to learn about possible attributes.
+//     // Hover to view descriptions of existing attributes.
+//     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+//     "version": "0.2.0",
+//     "configurations": [
+//         {
+//             "name": "ROS: Launch",
+//             "request": "launch",
+//             "target": "${workspaceFolder}/src/gmsl_camera/launch/cam_test.launch",
+//             "type": "ros"
+//         }
+//     ]
+// }

@@ -10,6 +10,7 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <pthread.h>
+#include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <error.h>
@@ -21,20 +22,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define CLEAR(x) memset(&(x), 0, sizeof(x))
+
 class gmsl_camera
 {
 public:
-    typedef enum
-    {
-        PIXEL_FORMAT_YUYV,
-        PIXEL_FORMAT_UYVY,
-        PIXEL_FORMAT_MJPEG,
-        PIXEL_FORMAT_YUVMONO10,
-        PIXEL_FORMAT_RGB24,
-        PIXEL_FORMAT_GREY,
-        PIXEL_FORMAT_UNKNOWN
-    } pixel_format;
-
     typedef struct
     {
         std::string deviceType;
@@ -42,7 +34,7 @@ public:
         int width;
         int height;
         int fps;
-        pixel_format format;
+        std::string format;
     } CameraInfo;
 
     struct buffer
@@ -55,7 +47,6 @@ public:
 
     ros::Time time;
     CameraInfo cameraInfo;
-    std::string format;
     std::string deviceType;
     sensor_msgs::ImagePtr msg;
     int fd;
@@ -69,13 +60,12 @@ public:
         image_transport::ImageTransport it(node);
         pub = it.advertise("image_source", 1);
 
-        node.param("device_type", cameraInfo.deviceType, std::string("other"));
+        node.param("device_type", cameraInfo.deviceType, std::string("gmsl"));
         node.param("device_address", cameraInfo.address, std::string("/dev/video0"));
-        node.param("image_width", cameraInfo.width, 640);
-        node.param("image_height", cameraInfo.height, 480);
-        node.param("fps", cameraInfo.fps, 24);
-        node.param("pixel_format", format, std::string("yuyv"));
-        cameraInfo.format = String2Enum(format);
+        node.param("image_width", cameraInfo.width, 1920);
+        node.param("image_height", cameraInfo.height, 1080);
+        node.param("fps", cameraInfo.fps, 30);
+        node.param("pixel_format", cameraInfo.format, std::string("uyvy"));
 
         fd = -1;
         buffers = NULL;
@@ -94,11 +84,29 @@ private:
 
     void Spin();
     void GetImage();
-    void ProcessImage(cv::Mat);
-    pixel_format String2Enum(std::string);
+    void PublishImage(cv::Mat);
+    uint32_t FormatStringConvertor(std::string);
+    cv::Mat ColorConvertor(const void *,uint32_t);
+    cv::Mat ColorConvertor(cv::Mat);
 
     ros::NodeHandle node;
     image_transport::Publisher pub;
     struct buffer *buffers;
     unsigned int bufferCount;
+
+    static int xioctl(int fd, int request, void *arg)
+    {
+        int r;
+        do
+            r = ioctl(fd, request, arg);
+        while (-1 == r && EINTR == errno);
+
+        return r;
+    }
+
+    static void errno_exit(const char *s)
+    {
+        fprintf(stderr, "%s error %d, %s\n", s, errno, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 };
