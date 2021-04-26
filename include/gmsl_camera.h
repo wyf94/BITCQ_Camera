@@ -37,6 +37,15 @@ public:
         std::string format;
     } CameraInfo;
 
+    typedef struct
+    {
+        int width;
+        int height;
+        int bytesPerPixel;
+        int imageSize;
+        char *image;
+    } ImageT;
+
     struct buffer
     {
         void *start;
@@ -70,6 +79,15 @@ public:
         fd = -1;
         buffers = NULL;
         bufferCount = 0;
+        imageT = (ImageT *)calloc(1, sizeof(ImageT));
+
+        imageT->width = cameraInfo.width;
+        imageT->height = cameraInfo.height;
+        imageT->bytesPerPixel = 3;
+
+        imageT->imageSize = imageT->width * imageT->height * imageT->bytesPerPixel;
+        imageT->image = (char *)calloc(imageT->imageSize, sizeof(char));
+        memset(imageT->image, 0, imageT->imageSize * sizeof(char));
     }
 
 private:
@@ -86,13 +104,14 @@ private:
     void GetImage();
     void PublishImage(cv::Mat);
     uint32_t FormatStringConvertor(std::string);
-    cv::Mat ColorConvertor(const void *,uint32_t);
+    cv::Mat ColorConvertor(const void *, uint32_t);
     cv::Mat ColorConvertor(cv::Mat);
 
     ros::NodeHandle node;
     image_transport::Publisher pub;
     struct buffer *buffers;
     unsigned int bufferCount;
+    ImageT *imageT;
 
     static int xioctl(int fd, int request, void *arg)
     {

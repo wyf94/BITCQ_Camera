@@ -10,4 +10,8 @@
         <!--pixel_format: yuyv uyvy mjpeg yuvmoni10 rgb24 grey other-->
         <param name="pixel_format" value="uyvy" />
     </node>
+    <node name= "image_view" pkg= "image_view" type= "image_view" respawn= "false" output= "screen" >
+     <remap from= "image" to= "/gmsl_camera/image_source" />
+     <param name= "autosize" value= "true" />
+   </node>
 </launch>
