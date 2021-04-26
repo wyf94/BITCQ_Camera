@@ -52,7 +52,7 @@ public:
         size_t length;
     };
 
-    int Open();
+    void Open();
 
     ros::Time time;
     CameraInfo cameraInfo;
@@ -91,14 +91,14 @@ public:
     }
 
 private:
-    int InitCamera();
-    int OpenDevice();
-    int CloseDevice();
-    int StartCapture();
-    int StopCapture();
-    int InitBuffers();
-    int FreeBuffers();
-    int RtspCamera();
+    void InitCamera();
+    void OpenDevice();
+    void CloseDevice();
+    void StartCapture();
+    void StopCapture();
+    void InitBuffers();
+    void FreeBuffers();
+    void RtspCamera();
 
     void Spin();
     void GetImage();
