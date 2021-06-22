@@ -9,8 +9,8 @@
             "name": "ROS: Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/home/nvidia/ros_ws/devel/lib/gmsl_camera/gmsl_camera_node",
-            "args": ["device_type=gmsl device_address=/dev/video0 image_width=1920 image_height=1080 fps=30 pixel_format=uyvy"],
+            "program": "/home/nvidia/ros_ws/devel/lib/bitcq_camera/bitcq_camera_node",
+            "args": ["device_type=dahua_sdk device_address=/dev/video0 image_width=1920 image_height=1080 fps=30 pixel_format=uyvy"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -36,7 +36,7 @@
 //         {
 //             "name": "ROS: Launch",
 //             "request": "launch",
-//             "target": "${workspaceFolder}/src/gmsl_camera/launch/cam_test.launch",
+//             "target": "${workspaceFolder}/src/bitcq_camera/launch/cam_test.launch",
 //             "type": "ros"
 //         }
 //     ]

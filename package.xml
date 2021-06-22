@@ -1,5 +1,5 @@
 <package>
-  <name>gmsl_camera</name>
+  <name>bitcq_camera</name>
   <version>0.0.1</version>
 
   <description>This package used for publishing camera data.</description>

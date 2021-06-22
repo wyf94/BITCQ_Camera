@@ -1,4 +1,4 @@
-#include <gmsl_camera.h>
+#include "gmsl_camera.h"
 
 typedef unsigned long long hash_t;
 constexpr hash_t prime = 0x100000001B3ull;
@@ -142,158 +142,13 @@ static void mono102mono8(char *RAW, char *MONO, int NumPixels)
     }
 }
 
-//Automatical start camera init and image publish.
-void gmsl_camera::Open()
-{
-    if (cameraInfo.deviceType == "gmsl" || cameraInfo.deviceType == "usb")
-    {
-        OpenDevice();
-        InitCamera();
-        StartCapture();
-
-        Spin();
-
-        StopCapture();
-        FreeBuffers();
-        CloseDevice();
-    }
-    else if (cameraInfo.deviceType == "rtsp")
-    {
-        RtspCamera();
-    }
-    else if (cameraInfo.deviceType == "hik_sdk")
-    {
-        errno_exit("DEVICE NOT FOUND: Program Do not access Hikvision Camera!\n");
-    }
-    errno_exit("NOT FOUND: Wrong device type!\n");
-}
-
-//Initialize logical camera.
-void gmsl_camera::InitCamera()
-{
-    struct v4l2_capability cap;    //Find camera's capability.
-    struct v4l2_cropcap cropcap;   //Setting camera's capture mode.
-    struct v4l2_fmtdesc fmtdesc;   //Find all Camera's format：VIDIOC_ENUM_FMT
-    struct v4l2_crop crop;         //Scaling camera.
-    struct v4l2_format fmt;        //Setting camera's framerate and video parameters.
-    struct v4l2_streamparm params; //Setting Capture parameters.
-
-    CLEAR(cap);
-    CLEAR(cropcap);
-    CLEAR(fmtdesc);
-    CLEAR(crop);
-    CLEAR(fmt);
-    CLEAR(params);
-
-    if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1)
-    {
-        if (EINVAL == errno)
-        {
-            errno_exit("NOT FOUND: No gmsl/usb camera device!\n");
-        }
-    }
-    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
-    {
-        perror("FAILED: VIDEO_CAPTURE\n");
-    }
-    if (!(cap.capabilities & V4L2_CAP_STREAMING))
-    {
-        perror("FAILED: CAP_STREAMING\n");
-    }
-
-    params.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    params.parm.capture.capturemode = V4L2_MODE_HIGHQUALITY;
-    params.parm.capture.timeperframe.numerator = 1;
-    params.parm.capture.timeperframe.denominator = cameraInfo.fps;
-    if (xioctl(fd, VIDIOC_S_PARM, &params) == -1)
-    {
-        perror("IOCTL: VIDIOC_S_PARM\n");
-    }
-
-    fmtdesc.index = 0;
-    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    printf("PRINT: Camera support format:\n");
-    while (xioctl(fd, VIDIOC_ENUM_FMT, &fmtdesc) != -1)
-    {
-        printf("\t%d.%s\n", fmtdesc.index + 1, fmtdesc.description);
-        fmtdesc.index++;
-    }
-
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    fmt.fmt.pix.width = cameraInfo.width;
-    fmt.fmt.pix.height = cameraInfo.height;
-    fmt.fmt.pix_mp.field = V4L2_FIELD_NONE;
-    fmt.fmt.pix_mp.pixelformat = FormatStringConvertor(cameraInfo.format);
-    if (xioctl(fd, VIDIOC_S_FMT, &fmt) == -1)
-    {
-        errno_exit("IOCTL: VIDIOC_S_FMT\n");
-    }
-
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (xioctl(fd, VIDIOC_G_FMT, &fmt) == -1)
-    {
-        perror("IOCTL: VIDIOC_G_FMT\n");
-    }
-
-    InitBuffers();
-}
-
 //Open camera device by camera's type.
 void gmsl_camera::OpenDevice()
 {
-    fd = open(cameraInfo.address.c_str(), O_RDWR /*| O_NONBLOCK*/, 0);
+    fd = open(address.c_str(), O_RDWR /*| O_NONBLOCK*/, 0);
     if (fd < 0)
     {
         errno_exit("NOT FOUND: Device open failed!\n");
-    }
-}
-
-//Close camera device.
-void gmsl_camera::CloseDevice()
-{
-    if (fd > 0 && close(fd) < 0)
-    {
-        errno_exit("FAILED: Device close failed\n");
-    }
-}
-
-//Start camera stream capture.
-void gmsl_camera::StartCapture()
-{
-    //Set streaming on.
-    enum v4l2_buf_type type;
-
-    for (unsigned int i = 0; i < bufferCount; i++)
-    {
-        struct v4l2_buffer buf;
-
-        CLEAR(buf);
-        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory = V4L2_MEMORY_MMAP;
-        buf.index = i;
-
-        if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
-        {
-            errno_exit("IOCTL: VIDIOC_QBUF\n");
-        }
-    }
-
-    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (xioctl(fd, VIDIOC_STREAMON, &type) == -1)
-    {
-        errno_exit("IOCTL: VIDIOC_STREAMON\n");
-    }
-}
-
-//Stop camera stream capture.
-void gmsl_camera::StopCapture()
-{
-    //Set streaming off.
-    enum v4l2_buf_type type;
-    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (xioctl(fd, VIDIOC_STREAMOFF, &type) == -1)
-    {
-        errno_exit("IOCTL: VIDIOC_STREAMOFF\n");
     }
 }
 
@@ -350,6 +205,116 @@ void gmsl_camera::InitBuffers()
     }
 }
 
+//Initialize logical camera.
+void gmsl_camera::InitCamera()
+{
+    struct v4l2_capability cap;    //Find camera's capability.
+    struct v4l2_cropcap cropcap;   //Setting camera's capture mode.
+    struct v4l2_fmtdesc fmtdesc;   //Find all Camera's format：VIDIOC_ENUM_FMT
+    struct v4l2_crop crop;         //Scaling camera.
+    struct v4l2_format fmt;        //Setting camera's framerate and video parameters.
+    struct v4l2_streamparm params; //Setting Capture parameters.
+
+    CLEAR(cap);
+    CLEAR(cropcap);
+    CLEAR(fmtdesc);
+    CLEAR(crop);
+    CLEAR(fmt);
+    CLEAR(params);
+
+    if (xioctl(fd, VIDIOC_QUERYCAP, &cap) == -1)
+    {
+        if (EINVAL == errno)
+        {
+            errno_exit("NOT FOUND: No gmsl/usb camera device!\n");
+        }
+    }
+    if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
+    {
+        perror("FAILED: VIDEO_CAPTURE\n");
+    }
+    if (!(cap.capabilities & V4L2_CAP_STREAMING))
+    {
+        perror("FAILED: CAP_STREAMING\n");
+    }
+
+    params.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    params.parm.capture.capturemode = V4L2_MODE_HIGHQUALITY;
+    params.parm.capture.timeperframe.numerator = 1;
+    params.parm.capture.timeperframe.denominator = fps;
+    if (xioctl(fd, VIDIOC_S_PARM, &params) == -1)
+    {
+        perror("IOCTL: VIDIOC_S_PARM\n");
+    }
+
+    fmtdesc.index = 0;
+    fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    printf("PRINT: Camera support format:\n");
+    while (xioctl(fd, VIDIOC_ENUM_FMT, &fmtdesc) != -1)
+    {
+        printf("\t%d.%s\n", fmtdesc.index + 1, fmtdesc.description);
+        fmtdesc.index++;
+    }
+
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    fmt.fmt.pix.width = width;
+    fmt.fmt.pix.height = height;
+    fmt.fmt.pix_mp.field = V4L2_FIELD_NONE;
+    fmt.fmt.pix_mp.pixelformat = FormatStringConvertor(format);
+    if (xioctl(fd, VIDIOC_S_FMT, &fmt) == -1)
+    {
+        errno_exit("IOCTL: VIDIOC_S_FMT\n");
+    }
+
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (xioctl(fd, VIDIOC_G_FMT, &fmt) == -1)
+    {
+        perror("IOCTL: VIDIOC_G_FMT\n");
+    }
+
+    InitBuffers();
+}
+
+//Start camera stream capture.
+void gmsl_camera::StartCapture()
+{
+    //Set streaming on.
+    enum v4l2_buf_type type;
+
+    for (unsigned int i = 0; i < bufferCount; i++)
+    {
+        struct v4l2_buffer buf;
+
+        CLEAR(buf);
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
+        buf.index = i;
+
+        if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
+        {
+            errno_exit("IOCTL: VIDIOC_QBUF\n");
+        }
+    }
+
+    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (xioctl(fd, VIDIOC_STREAMON, &type) == -1)
+    {
+        errno_exit("IOCTL: VIDIOC_STREAMON\n");
+    }
+}
+
+//Stop camera stream capture.
+void gmsl_camera::StopCapture()
+{
+    //Set streaming off.
+    enum v4l2_buf_type type;
+    type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    if (xioctl(fd, VIDIOC_STREAMOFF, &type) == -1)
+    {
+        errno_exit("IOCTL: VIDIOC_STREAMOFF\n");
+    }
+}
+
 //Free buffer cache.
 void gmsl_camera::FreeBuffers()
 {
@@ -364,75 +329,12 @@ void gmsl_camera::FreeBuffers()
     free(buffers);
 }
 
-//Open camera device by camera's type.
-void gmsl_camera::RtspCamera()
+//Close camera device.
+void gmsl_camera::CloseDevice()
 {
-    cv::VideoCapture cap;
-    cv::Mat image;
-
-    cap.open(cameraInfo.address);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT, cameraInfo.height);
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, cameraInfo.width);
-
-    while (node.ok())
+    if (fd > 0 && close(fd) < 0)
     {
-        if (cap.isOpened())
-        {
-            cap >> image;
-        }
-        if (image.empty())
-        {
-            perror("FAILED: Get frame failed\n");
-            continue;
-        }
-        ColorConvertor(image);
-        PublishImage(image);
-    }
-}
-
-//Get one frame from camera.
-void gmsl_camera::GetImage()
-{
-    cv::Mat image;
-
-    struct v4l2_buffer buf;
-    CLEAR(buf);
-    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buf.memory = V4L2_MEMORY_MMAP;
-
-    if (xioctl(fd, VIDIOC_DQBUF, &buf) == -1)
-    {
-        errno_exit("IOCTL: VIDIOC_DQBUF\n");
-    }
-
-    //image = cv::Mat(cv::Size(cameraInfo.width, cameraInfo.height), CV_8UC3, buffers[buf.index].start);
-
-    image = ColorConvertor(buffers[buf.index].start, buf.bytesused);
-
-    PublishImage(image);
-
-    if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
-    {
-        errno_exit("IOCTL: VIDIOC_QBUF\n");
-    }
-}
-
-//Publish Image which grab from memory.
-void gmsl_camera::PublishImage(cv::Mat image)
-{
-    msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
-    pub.publish(msg);
-}
-
-//Loop detection of image acquisition and image sending.
-void gmsl_camera::Spin()
-{
-    ros::Rate loopRate(this->cameraInfo.fps);
-    while (node.ok())
-    {
-        GetImage();
-        ros::spinOnce();
-        loopRate.sleep();
+        errno_exit("FAILED: Device close failed\n");
     }
 }
 
@@ -466,14 +368,17 @@ uint32_t gmsl_camera::FormatStringConvertor(std::string format)
 
 cv::Mat gmsl_camera::ColorConvertor(const void *src, uint32_t len)
 {
-    switch (hash_(cameraInfo.format.c_str()))
+    switch (hash_(format.c_str()))
     {
     case "yuyv"_hash:
         yuyv2rgb((char *)src, imageT->image, imageT->height * imageT->width);
         break;
     case "uyvy"_hash:
-        //uyvy2rgb((char *)src, imageT->image, imageT->height * imageT->width);
         yuyv2rgb((char *)src, imageT->image, imageT->height * imageT->width);
+        if (-1)
+        {
+            uyvy2rgb((char *)src, imageT->image, imageT->height * imageT->width);
+        }
         break;
     case "mjpeg"_hash:
         //cv::cvtColor(image, image, cv::COLOR_); //Need Decoding
@@ -498,31 +403,29 @@ cv::Mat gmsl_camera::ColorConvertor(const void *src, uint32_t len)
     return image;
 }
 
-cv::Mat gmsl_camera::ColorConvertor(cv::Mat image)
+//Get one frame from camera.
+cv::Mat gmsl_camera::GetImage()
 {
-    switch (hash_(cameraInfo.format.c_str()))
+    cv::Mat image;
+
+    struct v4l2_buffer buf;
+    CLEAR(buf);
+    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory = V4L2_MEMORY_MMAP;
+
+    if (xioctl(fd, VIDIOC_DQBUF, &buf) == -1)
     {
-    case "yuyv"_hash:
-        cv::cvtColor(image, image, cv::COLOR_YUV2BGR_YUY2);
-        break;
-    case "uyvy"_hash:
-        cv::cvtColor(image, image, cv::COLOR_YUV2BGR_UYVY);
-        break;
-    case "mjpeg"_hash:
-        //cv::cvtColor(image, image, cv::COLOR_); //Need Decoding
-        break;
-    case "yuvmono10"_hash:
-        cv::cvtColor(image, image, cv::COLOR_GRAY2BGR); //16BIT Gray
-        break;
-    case "rgb24"_hash:
-        cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
-        break;
-    case "grey"_hash:
-        cv::cvtColor(image, image, cv::COLOR_GRAY2BGR);
-        break;
-    default:
-        break;
+        errno_exit("IOCTL: VIDIOC_DQBUF\n");
     }
 
+    //image = cv::Mat(cv::Size(width, height), CV_8UC3, buffers[buf.index].start);
+
+    image = ColorConvertor(buffers[buf.index].start, buf.bytesused);
+
     return image;
+
+    if (xioctl(fd, VIDIOC_QBUF, &buf) == -1)
+    {
+        errno_exit("IOCTL: VIDIOC_QBUF\n");
+    }
 }

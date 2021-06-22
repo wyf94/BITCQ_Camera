@@ -7,7 +7,7 @@
       },
       "includePath": [
         "/opt/ros/melodic/include/**",
-        "/home/nvidia/ros_ws/src/gmsl_camera/include/**",
+        "/home/nvidia/ros_ws/src/bitcq_camera/include/**",
         "/home/nvidia/ros_ws/src/usb_cam/include/**",
         "/usr/include/**"
       ],

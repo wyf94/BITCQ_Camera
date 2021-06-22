@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(gmsl_camera)
+project(bitcq_camera)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -g -Wunused-function")
 
 #add_compile_options(-std=c++17)
 
@@ -25,19 +25,31 @@ catkin_package(
 include_directories( include
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/3rdparty/GMSL_Camera/
+  ${PROJECT_SOURCE_DIR}/3rdparty/Galaxy_Camera/
+  ${PROJECT_SOURCE_DIR}/3rdparty/Rtsp_Camera/
 )
 
-add_library(${PROJECT_NAME} src/gmsl_camera.cpp)
+add_subdirectory(3rdparty/GMSL_Camera)
+add_subdirectory(3rdparty/Galaxy_Camera)
+add_subdirectory(3rdparty/Rtsp_Camera)
+
+add_library(${PROJECT_NAME} src/bitcq_camera.cpp)
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
+  GMSL_Camera
+  Galaxy_Camera
+  Rtsp_Camera
 )
 
-add_executable(${PROJECT_NAME}_node nodes/gmsl_camera_node.cpp)
+add_executable(${PROJECT_NAME}_node nodes/bitcq_camera_node.cpp)
+
 target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
+  ${PROJECT_SOURCE_DIR}/lib/Galaxy_Camera/armv8/libgxiapi.so
 )
 
 install(TARGETS ${PROJECT_NAME}_node ${PROJECT_NAME}
