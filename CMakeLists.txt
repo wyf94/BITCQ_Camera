@@ -49,7 +49,6 @@ target_link_libraries(${PROJECT_NAME}_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
-  ${PROJECT_SOURCE_DIR}/lib/Galaxy_Camera/armv8/libgxiapi.so
 )
 
 install(TARGETS ${PROJECT_NAME}_node ${PROJECT_NAME}

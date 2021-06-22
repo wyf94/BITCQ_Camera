@@ -33,9 +33,9 @@ public:
     std::string deviceType;
     sensor_msgs::ImagePtr msg;
 
-    gmsl_camera gmsl;
-    galaxy_camera galaxy;
-    rtsp_camera rtsp;
+    gmsl_camera *gmsl;
+    galaxy_camera *galaxy;
+    rtsp_camera *rtsp;
 
     bitcq_camera() : node("~")
     {
@@ -53,8 +53,9 @@ public:
         node.param("fps", cameraInfo.fps, 30);
         node.param("pixel_format", cameraInfo.format, std::string("uyvy"));
 
-        gmsl = gmsl_camera(cameraInfo.address, cameraInfo.width, cameraInfo.height, cameraInfo.fps, cameraInfo.format);
-        rtsp = rtsp_camera(cameraInfo.address, cameraInfo.width, cameraInfo.height, cameraInfo.fps, cameraInfo.format);
+        gmsl = new gmsl_camera(cameraInfo.address, cameraInfo.width, cameraInfo.height, cameraInfo.fps, cameraInfo.format);
+        rtsp = new rtsp_camera(cameraInfo.address, cameraInfo.width, cameraInfo.height, cameraInfo.fps, cameraInfo.format);
+        galaxy = new galaxy_camera(cameraInfo.address, cameraInfo.width, cameraInfo.height, cameraInfo.fps, cameraInfo.format);
     }
 
 private:

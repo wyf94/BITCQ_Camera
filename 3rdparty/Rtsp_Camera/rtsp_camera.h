@@ -13,15 +13,15 @@ private:
     int fps; 
     std::string format;
 
+    cv::VideoCapture cap;
+    cv::Mat image;
+
 public:   
-    rtsp_camera();
-    rtsp_camera(std::string addr, int w, int h, int f, std::string fm)
+    rtsp_camera(std::string addr, int w, int h, int f, std::string fm) : address(addr), width(w), height(h), fps(f), format(fm) 
     {
-        address = addr;
-        width = w;
-        height = h;
-        fps = f;
-        format = fm;
+        cap.open(address);
+        cap.set(CV_CAP_PROP_FRAME_HEIGHT, height);
+        cap.set(CV_CAP_PROP_FRAME_WIDTH, width);
     }
 
     void RtspCamera(); 

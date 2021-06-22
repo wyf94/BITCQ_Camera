@@ -22,29 +22,20 @@ constexpr hash_t operator"" _hash(char const *p, size_t)
 }
 
 //Open camera device by camera's type.
-void rtsp_camera::RtspCamera()
+cv::Mat rtsp_camera::GetImage()
 {
-    cv::VideoCapture cap;
-    cv::Mat image;
+    if (cap.isOpened())
+    {
+        cap >> image;
+    }
+    if (image.empty())
+    {
+        perror("FAILED: Get frame failed\n");
+        continue;
+    }
+    ColorConvertor(image);
 
-    cap.open(address);
-    cap.set(CV_CAP_PROP_FRAME_HEIGHT, height);
-    cap.set(CV_CAP_PROP_FRAME_WIDTH, width);
-
-    // while (node.ok())
-    // {
-    //     if (cap.isOpened())
-    //     {
-    //         cap >> image;
-    //     }
-    //     if (image.empty())
-    //     {
-    //         perror("FAILED: Get frame failed\n");
-    //         continue;
-    //     }
-    //     ColorConvertor(image);
-    //     PublishImage(image);
-    // }
+    return image;
 }
 
 cv::Mat rtsp_camera::ColorConvertor(cv::Mat image)
