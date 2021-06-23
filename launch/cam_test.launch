@@ -5,11 +5,11 @@
         <param name="device_type" value="dahua_sdk"/>
         <!--device_address: device's hardware io address : "/dev/video0" "rtsp://...." "192.168.1.1"-->
         <param name="device_address" value="/dev/video0"/>
-        <param name="image_width" value="1920" />
-        <param name="image_height" value="1080" />
-        <param name="fps" value="30"/>
+        <param name="image_width" value="2448" />
+        <param name="image_height" value="2048" />
+        <param name="fps" value="36"/>
         <!--pixel_format: yuyv uyvy mjpeg yuvmoni10 rgb24 grey other-->
-        <param name="pixel_format" value="uyvy" />
+        <param name="pixel_format" value="yuyv" />
     </node>
     <node name= "image_view" pkg= "image_view" type= "image_view" respawn= "false" output= "screen" >
      <remap from= "image" to= "/bitcq_camera/image_source" />

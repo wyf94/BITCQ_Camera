@@ -24,5 +24,5 @@ public:
         cap.set(CV_CAP_PROP_FRAME_WIDTH, width);
     }
 
-    void RtspCamera(); 
+    cv::Mat GetImage(); 
 };

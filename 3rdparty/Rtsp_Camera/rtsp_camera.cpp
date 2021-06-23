@@ -31,7 +31,6 @@ cv::Mat rtsp_camera::GetImage()
     if (image.empty())
     {
         perror("FAILED: Get frame failed\n");
-        continue;
     }
     ColorConvertor(image);
 

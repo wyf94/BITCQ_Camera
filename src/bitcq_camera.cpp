@@ -17,12 +17,12 @@ void bitcq_camera::Open()
     }
     else if (cameraInfo.deviceType == "rtsp")
     {
-        rtsp->GetImage();
+        Spin();
     }
     else if (cameraInfo.deviceType == "dahua_sdk")
     {
-        int status = galaxy->OpenDevice();
-        ROS_INFO("Dahua Camera Return Status: %d\n", status);
+        galaxy->OpenDevice();
+        Spin();
     }
     else if (cameraInfo.deviceType == "hik_sdk")
     {
@@ -34,10 +34,27 @@ void bitcq_camera::Open()
 //Loop detection of image acquisition and image sending.
 void bitcq_camera::Spin()
 {
+    cv::Mat image = cv::Mat::zeros(cv::Size(cameraInfo.width, cameraInfo.height), CV_8UC3);
     ros::Rate loopRate(this->cameraInfo.fps);
     while (node.ok())
     {
-        cv::Mat image = gmsl->GetImage();
+        if (cameraInfo.deviceType == "gmsl" || cameraInfo.deviceType == "usb")
+        {
+            image = gmsl->GetImage();
+        }
+        else if (cameraInfo.deviceType == "rtsp")
+        {
+            image = rtsp->GetImage();
+        }
+        else if (cameraInfo.deviceType == "dahua_sdk")
+        {
+            image = galaxy->GetImage();
+        }
+        else if (cameraInfo.deviceType == "hik_sdk")
+        {
+            ROS_INFO("Hik_Camera was not supported!\n");
+        }
+
         PublishImage(image);
 
         ros::spinOnce();
