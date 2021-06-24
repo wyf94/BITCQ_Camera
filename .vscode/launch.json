@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "/home/nvidia/ros_ws/devel/lib/bitcq_camera/bitcq_camera_node",
-            "args": ["device_type=dahua_sdk device_address=/dev/video0 image_width=1920 image_height=1080 fps=30 pixel_format=uyvy"],
+            "args": ["device_type=daheng_sdk device_address=/dev/video0 image_width=1920 image_height=1080 fps=30 pixel_format=uyvy"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

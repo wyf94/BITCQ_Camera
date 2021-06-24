@@ -1,8 +1,8 @@
 <launch>
     <!-- DEBUG: launch-prefix="gdb -ex run -(delete)-args" -->
     <node name="bitcq_camera" pkg="bitcq_camera" type="bitcq_camera_node" output="screen"> 
-        <!--device_type: gmsl  usb  rtsp  hik_sdk dahua_sdk-->
-        <param name="device_type" value="dahua_sdk"/>
+        <!--device_type: gmsl  usb  rtsp  hik_sdk daheng_sdk-->
+        <param name="device_type" value="daheng_sdk"/>
         <!--device_address: device's hardware io address : "/dev/video0" "rtsp://...." "192.168.1.1"-->
         <param name="device_address" value="/dev/video0"/>
         <param name="image_width" value="2448" />

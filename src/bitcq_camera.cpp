@@ -19,7 +19,7 @@ void bitcq_camera::Open()
     {
         Spin();
     }
-    else if (cameraInfo.deviceType == "dahua_sdk")
+    else if (cameraInfo.deviceType == "daheng_sdk")
     {
         galaxy->OpenDevice();
         Spin();
@@ -46,7 +46,7 @@ void bitcq_camera::Spin()
         {
             image = rtsp->GetImage();
         }
-        else if (cameraInfo.deviceType == "dahua_sdk")
+        else if (cameraInfo.deviceType == "daheng_sdk")
         {
             image = galaxy->GetImage();
         }
@@ -54,6 +54,8 @@ void bitcq_camera::Spin()
         {
             ROS_INFO("Hik_Camera was not supported!\n");
         }
+
+	    //cv::resize(image,image,cv::Size(200,100));
 
         PublishImage(image);
 

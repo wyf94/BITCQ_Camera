@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(bitcq_camera)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -g -Wunused-function")
-
-#add_compile_options(-std=c++17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -g")
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp

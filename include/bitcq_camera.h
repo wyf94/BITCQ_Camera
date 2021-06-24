@@ -46,7 +46,7 @@ public:
         image_transport::ImageTransport it(node);
         pub = it.advertise("image_source", 1);
 
-        node.param("device_type", cameraInfo.deviceType, std::string("dahua_sdk"));
+        node.param("device_type", cameraInfo.deviceType, std::string("daheng_sdk"));
         node.param("device_address", cameraInfo.address, std::string("/dev/video0"));
         node.param("image_width", cameraInfo.width, 1920);
         node.param("image_height", cameraInfo.height, 1080);

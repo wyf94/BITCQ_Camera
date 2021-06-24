@@ -45,11 +45,7 @@ void galaxy_camera::DQBufInit()
 {
     //Open first device enumerated
     status = GXOpenDeviceByIndex(1, &hDevice);
-    if (status != GX_STATUS_SUCCESS)
-    {
-        GetErrorString(status);
-        GXCloseLib();
-    }
+    GX_VERIFY_EXIT(status);
 }
 
 void galaxy_camera::DQAllBufInit()
@@ -68,59 +64,11 @@ void galaxy_camera::GetImageInit()
 
     //Open Device
     status = GXOpenDevice(&openParam, &hDevice);
-    if (status != GX_STATUS_SUCCESS)
-    {
-        GX_VERIFY_EXIT(status);
-    }
+    GX_VERIFY_EXIT(status);
 
     GetDeviceInfo();
 
-    //Set the acquisition mode to continuous acquisition
-    status = GXSetEnum(hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
-    if (status != GX_STATUS_SUCCESS)
-    {
-        GetErrorString(status);
-        GX_VERIFY_EXIT(status);
-    }
-
-    //Set the trigger switch to OFF
-    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);
-    if (status != GX_STATUS_SUCCESS)
-    {
-        GetErrorString(status);
-        GX_VERIFY_EXIT(status);
-    }
-
-    // //Set automatic function lighting environment
-    // status = GXSetEnum(hDevice, GX_ENUM_AA_LIGHT_ENVIRMENT, GX_AA_LIGHT_ENVIRMENT_NATURELIGHT);
-    // if (status != GX_STATUS_SUCCESS)
-    // {
-    //     GetErrorString(status);
-    //     GX_VERIFY_EXIT(status);
-    // }
-
-    //获取期望灰度值调节范围
-    GX_INT_RANGE grayValueRange;
-    status = GXGetIntRange(hDevice, GX_INT_GRAY_VALUE, &grayValueRange);
-    //设置最小期望灰度值
-    status = GXSetInt(hDevice, GX_INT_GRAY_VALUE, grayValueRange.nMin);
-    //设置最大期望灰度值
-    status = GXSetInt(hDevice, GX_INT_GRAY_VALUE, grayValueRange.nMax);
-
-    // //获取调节范围
-    // GX_FLOAT_RANGE autoGainMinRange;
-    // GX_FLOAT_RANGE autoGainMaxRange;
-    // GX_FLOAT_RANGE autoExposureMinRange;
-    // GX_FLOAT_RANGE autoExposureMaxRange;
-    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_GAIN_MIN, &autoGainMinRange);
-    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_GAIN_MAX, &autoGainMaxRange);
-    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, &autoExposureMinRange);
-    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, &autoExposureMaxRange);
-    // //设置调节边界值
-    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_GAIN_MIN, autoGainMinRange.dMin);
-    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_GAIN_MAX, autoGainMinRange.dMax);
-    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, autoShutterMinRange.dMin);
-    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, autoShutterMaxRange.dMax);
+    FunctionSetting();
 
     int64_t payload_size = 0;
     status = GXGetInt(hDevice, GX_INT_PAYLOAD_SIZE, &payload_size);
@@ -130,7 +78,7 @@ void galaxy_camera::GetImageInit()
         GX_VERIFY_EXIT(status);
     }
 
-    printf("payload_size: %d\n", payload_size);
+    printf("payload_size: %ld\n", payload_size);
 
     gFrameData.pImgBuf = malloc(payload_size);
     if (gFrameData.pImgBuf == NULL)
@@ -162,6 +110,116 @@ cv::Mat galaxy_camera::GetImage()
         }
     }
     return image;
+}
+
+void galaxy_camera::FunctionSetting()
+{
+    //Set the acquisition mode to continuous acquisition
+    status = GXSetEnum(hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
+    GX_VERIFY_EXIT(status);
+
+    //Set the trigger switch to OFF
+    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);
+    GX_VERIFY_EXIT(status);
+    // status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
+    // GX_VERIFY_EXIT(status);
+    // status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE2);
+    // GX_VERIFY_EXIT(status);
+    // status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_SELECTOR, GX_ENUM_TRIGGER_SELECTOR_FRAME_START);
+    // GX_VERIFY_EXIT(status);
+
+    //exposure mode and time setting
+    status = GXSetEnum(hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_CONTINUOUS);
+    GX_VERIFY_EXIT(status);
+    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, 20.0000);//us,20-1000000
+    GX_VERIFY_EXIT(status);
+    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, 25000.0000);//us,20-1000000
+
+    //set AutoGain mode and max_min
+    status = GXSetEnum(hDevice, GX_ENUM_GAIN_SELECTOR, GX_GAIN_SELECTOR_ALL);
+    GX_VERIFY_EXIT(status);
+    status = GXSetEnum(hDevice, GX_ENUM_GAIN_AUTO, GX_GAIN_AUTO_CONTINUOUS);
+    GX_VERIFY_EXIT(status);
+    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_GAIN_MIN, 0.0000);//0-24
+    GX_VERIFY_EXIT(status);
+    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_GAIN_MAX, 20.0000);//0-24
+    GX_VERIFY_EXIT(status);
+
+    if (bColorFilter)
+    {
+        printf("This is a color camera! \n");
+        //white balance
+        status = GXSetEnum(hDevice, GX_ENUM_BALANCE_RATIO_SELECTOR, GX_BALANCE_RATIO_SELECTOR_BLUE);
+        GX_VERIFY_EXIT(status);
+        status = GXSetEnum(hDevice, GX_ENUM_BALANCE_WHITE_AUTO, GX_BALANCE_WHITE_AUTO_CONTINUOUS);
+        GX_VERIFY_EXIT(status);
+    }
+
+    //acquisition frame rate 
+    status = GXSetFloat(hDevice, GX_FLOAT_ACQUISITION_FRAME_RATE, fps);
+    GX_VERIFY_EXIT(status);
+
+    //set GPIO output signal
+    status = GXSetEnum(hDevice, GX_ENUM_LINE_SELECTOR, GX_ENUM_LINE_SELECTOR_LINE3);
+    GX_VERIFY_EXIT(status);
+    status = GXSetEnum(hDevice, GX_ENUM_LINE_SOURCE, GX_ENUM_LINE_SOURCE_USEROUTPUT0);
+    GX_VERIFY_EXIT(status);
+    status = GXSetEnum(hDevice, GX_ENUM_LINE_MODE, GX_ENUM_LINE_MODE_OUTPUT);
+    GX_VERIFY_EXIT(status);
+
+    //Set buffer quantity of acquisition queue
+    uint64_t nBufferNum = ACQ_BUFFER_NUM;
+    status = GXSetAcqusitionBufferNumber(hDevice, nBufferNum);
+    GX_VERIFY_EXIT(status);
+
+    bool bStreamTransferSize = false;
+    status = GXIsImplemented(hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, &bStreamTransferSize);
+    GX_VERIFY_EXIT(status);
+
+    if(bStreamTransferSize)
+    {
+        //Set size of data transfer block
+        status = GXSetInt(hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, ACQ_TRANSFER_SIZE);
+        GX_VERIFY_EXIT(status);
+    }
+
+    bool bStreamTransferNumberUrb = false;
+    status = GXIsImplemented(hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, &bStreamTransferNumberUrb);
+    GX_VERIFY_EXIT(status);
+
+    if(bStreamTransferNumberUrb)
+    {
+        //Set qty. of data transfer block
+        status = GXSetInt(hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, ACQ_TRANSFER_NUMBER_URB);
+        GX_VERIFY_EXIT(status);
+    }
+
+    // //Set automatic function lighting environment
+    // status = GXSetEnum(hDevice, GX_ENUM_AA_LIGHT_ENVIRMENT, GX_AA_LIGHT_ENVIRMENT_NATURELIGHT);
+    // GX_VERIFY_EXIT(status);
+
+    //获取期望灰度值调节范围
+    GX_INT_RANGE grayValueRange;
+    status = GXGetIntRange(hDevice, GX_INT_GRAY_VALUE, &grayValueRange);
+    //设置最小期望灰度值
+    status = GXSetInt(hDevice, GX_INT_GRAY_VALUE, grayValueRange.nMin);
+    //设置最大期望灰度值
+    status = GXSetInt(hDevice, GX_INT_GRAY_VALUE, grayValueRange.nMax);
+
+    // //获取调节范围
+    // GX_FLOAT_RANGE autoGainMinRange;
+    // GX_FLOAT_RANGE autoGainMaxRange;
+    // GX_FLOAT_RANGE autoExposureMinRange;
+    // GX_FLOAT_RANGE autoExposureMaxRange;
+    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_GAIN_MIN, &autoGainMinRange);
+    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_GAIN_MAX, &autoGainMaxRange);
+    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, &autoExposureMinRange);
+    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, &autoExposureMaxRange);
+    // //设置调节边界值
+    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_GAIN_MIN, autoGainMinRange.dMin);
+    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_GAIN_MAX, autoGainMinRange.dMax);
+    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, autoShutterMinRange.dMin);
+    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, autoShutterMaxRange.dMax);
 }
 
 void galaxy_camera::CloseDevice()
@@ -256,6 +314,11 @@ void galaxy_camera::GetDeviceInfo()
     delete[] pszDeviceVersion;
     pszDeviceVersion = NULL;
     printf("***********************************************\n");
+
+    //Get the type of Bayer conversion. whether is a color camera.
+    bColorFilter = false;
+    status = GXIsImplemented(hDevice, GX_ENUM_PIXEL_COLOR_FILTER, &bColorFilter);
+    GX_VERIFY_EXIT(status);
 }
 
 void galaxy_camera::GetErrorString(GX_STATUS emErrorStatus)

@@ -9,6 +9,10 @@
 #include "GxIAPI.h"
 #include "DxImageProc.h"
 
+#define ACQ_BUFFER_NUM          5               ///< Acquisition Buffer Qty.
+#define ACQ_TRANSFER_SIZE       (64 * 1024)     ///< Size of data transfer block
+#define ACQ_TRANSFER_NUMBER_URB 64              ///< Qty. of data transfer block
+
 //Show error message
 #define GX_VERIFY(emStatus)            \
     if (emStatus != GX_STATUS_SUCCESS) \
@@ -39,6 +43,7 @@ private:
     std::string format;
     int collectionMode = 4; // 1:DQBuf(Linux) 2:DQAllBuf(Linux) 3.Callback 4.GetImage
     cv::Mat image;
+    bool bColorFilter = false;
 
     GX_STATUS status;
     GX_DEV_HANDLE hDevice = NULL; ///< Device handle
@@ -57,6 +62,7 @@ public:
     cv::Mat GetImage();
     void GetErrorString(GX_STATUS);
     void CloseDevice();
+    void FunctionSetting();
     void GetDeviceInfo();
     
     void DQBufInit();
