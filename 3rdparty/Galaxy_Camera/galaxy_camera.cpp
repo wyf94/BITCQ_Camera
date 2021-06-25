@@ -114,35 +114,73 @@ cv::Mat galaxy_camera::GetImage()
 
 void galaxy_camera::FunctionSetting()
 {
-    //Set the acquisition mode to continuous acquisition
-    status = GXSetEnum(hDevice, GX_ENUM_ACQUISITION_MODE, GX_ACQ_MODE_CONTINUOUS);
+    //------------Trigger Setting------------
+    //Set the acquisition mode
+    status = GXSetEnum(hDevice, GX_ENUM_ACQUISITION_MODE, cameraSetting.acquisitionMode);
     GX_VERIFY_EXIT(status);
 
-    //Set the trigger switch to OFF
-    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);
+    //Set the trigger switch
+    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_MODE, cameraSetting.triggerSwitch);
     GX_VERIFY_EXIT(status);
-    // status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
-    // GX_VERIFY_EXIT(status);
-    // status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE2);
-    // GX_VERIFY_EXIT(status);
-    // status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_SELECTOR, GX_ENUM_TRIGGER_SELECTOR_FRAME_START);
-    // GX_VERIFY_EXIT(status);
+    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_ACTIVATION, cameraSetting.activationEntry);
+    GX_VERIFY_EXIT(status);
+    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_SOURCE, cameraSetting.sourceEntry);
+    GX_VERIFY_EXIT(status);
+    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_SELECTOR, cameraSetting.selectorEntry);
+    GX_VERIFY_EXIT(status);
+    status = GXSetEnum(hDevice, GX_FLOAT_TRIGGER_DELAY, cameraSetting.triggerDelay);
+    GX_VERIFY_EXIT(status);
+
+    //Get the rising edge filter setting range
+    GX_FLOAT_RANGE raisingRange;
+    status = GXGetFloatRange(hDevice, GX_FLOAT_TRIGGER_FILTER_RAISING, &raisingRange);
+    //Set the minimum value of the rising edge filter
+    status = GXSetFloat(hDevice, GX_FLOAT_TRIGGER_FILTER_RAISING, raisingRange.dMin);
+    //Set the maximum value of the rising edge filter
+    status = GXSetFloat(hDevice, GX_FLOAT_TRIGGER_FILTER_RAISING, raisingRange.dMax);
+    //Get the current rising edge filter value
+    status = GXGetFloat(hDevice, GX_FLOAT_TRIGGER_FILTER_RAISING, &cameraSetting.dRaisingValue);
+    //Get the falling edge filter setting range
+    GX_FLOAT_RANGE fallingRange;
+    status = GXGetFloatRange(hDevice, GX_FLOAT_TRIGGER_FILTER_FALLING, &fallingRange);
+    //Set the minimum value of the falling edge filter
+    status = GXSetFloat(hDevice, GX_FLOAT_TRIGGER_FILTER_FALLING, fallingRange.dMin);
+    //Set the maximum value of the falling edge filter
+    status = GXSetFloat(hDevice, GX_FLOAT_TRIGGER_FILTER_FALLING, fallingRange.dMax);
+    //Get the current falling edge filter value
+    status = GXGetFloat(hDevice, GX_FLOAT_TRIGGER_FILTER_FALLING, &cameraSetting.dFallingValue);
+    //------------End Trigger Setting------------
+
+    //------------Exposure Setting------------
+    //获取曝光调节范围
+    GX_FLOAT_RANGE shutterRange;
+    double dExposureValue = 2.0;
+    status = GXGetFloatRange(hDevice, GX_FLOAT_EXPOSURE_TIME,
+                             &shutterRange);
+    //设置最小曝光值
+    status = GXSetFloat(hDevice, GX_FLOAT_EXPOSURE_TIME,
+                        shutterRange.dMin);
+    //设置最大曝光值
+    status = GXSetFloat(hDevice, GX_FLOAT_EXPOSURE_TIME,
+                        shutterRange.dMax);
+
+    printf("%ld\n%ld\n", shutterRange.dMin, shutterRange.dMax);
 
     //exposure mode and time setting
     status = GXSetEnum(hDevice, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_CONTINUOUS);
     GX_VERIFY_EXIT(status);
-    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, 20.0000);//us,20-1000000
+    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, 20.0000); //us,20-1000000
     GX_VERIFY_EXIT(status);
-    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, 25000.0000);//us,20-1000000
+    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, 25000.0000); //us,20-1000000
 
     //set AutoGain mode and max_min
     status = GXSetEnum(hDevice, GX_ENUM_GAIN_SELECTOR, GX_GAIN_SELECTOR_ALL);
     GX_VERIFY_EXIT(status);
     status = GXSetEnum(hDevice, GX_ENUM_GAIN_AUTO, GX_GAIN_AUTO_CONTINUOUS);
     GX_VERIFY_EXIT(status);
-    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_GAIN_MIN, 0.0000);//0-24
+    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_GAIN_MIN, 0.0000); //0-24
     GX_VERIFY_EXIT(status);
-    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_GAIN_MAX, 20.0000);//0-24
+    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_GAIN_MAX, 20.0000); //0-24
     GX_VERIFY_EXIT(status);
 
     if (bColorFilter)
@@ -155,7 +193,7 @@ void galaxy_camera::FunctionSetting()
         GX_VERIFY_EXIT(status);
     }
 
-    //acquisition frame rate 
+    //acquisition frame rate
     status = GXSetFloat(hDevice, GX_FLOAT_ACQUISITION_FRAME_RATE, fps);
     GX_VERIFY_EXIT(status);
 
@@ -176,7 +214,7 @@ void galaxy_camera::FunctionSetting()
     status = GXIsImplemented(hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, &bStreamTransferSize);
     GX_VERIFY_EXIT(status);
 
-    if(bStreamTransferSize)
+    if (bStreamTransferSize)
     {
         //Set size of data transfer block
         status = GXSetInt(hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, ACQ_TRANSFER_SIZE);
@@ -187,7 +225,7 @@ void galaxy_camera::FunctionSetting()
     status = GXIsImplemented(hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, &bStreamTransferNumberUrb);
     GX_VERIFY_EXIT(status);
 
-    if(bStreamTransferNumberUrb)
+    if (bStreamTransferNumberUrb)
     {
         //Set qty. of data transfer block
         status = GXSetInt(hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, ACQ_TRANSFER_NUMBER_URB);

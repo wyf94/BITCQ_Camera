@@ -39,6 +39,7 @@ target_link_libraries(${PROJECT_NAME}
   GMSL_Camera
   Galaxy_Camera
   Rtsp_Camera
+  ${PROJECT_SOURCE_DIR}/lib/JetsonGPIO/libJetsonGPIO.a
 )
 
 add_executable(${PROJECT_NAME}_node nodes/bitcq_camera_node.cpp)

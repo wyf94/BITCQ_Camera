@@ -12,6 +12,7 @@
 #include "galaxy_camera.h"
 #include "gmsl_camera.h"
 #include "rtsp_camera.h"
+#include <JetsonGPIO.h>
 
 class bitcq_camera
 {
@@ -39,6 +40,7 @@ public:
 
     bitcq_camera() : node("~")
     {
+        GPIO::setmode(GPIO::BOARD);
         time = ros::Time::now();
         std::cout << time << std::endl;
 
