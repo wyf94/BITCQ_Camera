@@ -46,14 +46,20 @@ private:
         GX_TRIGGER_SOURCE_ENTRY sourceEntry;         //0: GX_TRIGGER_SOURCE_SOFTWARE 1: GX_TRIGGER_SOURCE_LINE0 2: GX_TRIGGER_SOURCE_LINE1 3: GX_TRIGGER_SOURCE_LINE2 4: GX_TRIGGER_SOURCE_LINE3 5: GX_TRIGGER_SOURCE_COUNTER2END
         GX_TRIGGER_SELECTOR_ENTRY selectorEntry;     //1: GX_ENUM_TRIGGER_SELECTOR_FRAME_START 2:GX_ENUM_TRIGGER_SELECTOR_FRAME_BURST_START
         int64_t triggerDelay;                        //TriggerDelay Min:0.0000 Max:3000000.0000 us
-        double dRaisingValue;                        //TriggerFilterRaisingEdge Min:0.0000 Max:5000.0000 us
-        double dFallingValue;                        //TriggerFilterFallingEdge Min:0.0000 Max:5000.0000 us
         //------------End Trigger Setting------------
 
         //------------Exposure Setting------------
         GX_EXPOSURE_MODE_ENTRY exposureModeEntry;      //1: GX_EXPOSURE_MODE_TIMED 2: GX_EXPOSURE_MODE_TRIGGERWIDTH
         GX_EXPOSURE_TIME_MODE_ENTRY exposureTimeEntry; //0: GX_EXPOSURE_TIME_MODE_ULTRASHORT 1: GX_EXPOSURE_TIME_MODE_STANDARD
+        double minShutterRange; //Min:20.0000 Max:27000.0000
+        double maxShutterRange; //Min:20.0000 Max:1000000.0000
+        GX_EXPOSURE_AUTO_ENTRY exposureAutoEntry; //0: GX_EXPOSURE_AUTO_OFF 1: GX_EXPOSURE_AUTO_CONTINUOUS 2: GX_EXPOSURE_AUTO_ONCE
+        double exposureDelayValue; //2us
         //------------End Exposure Setting------------
+
+        //------------Desired Gray Value Setting------------
+        int64_t desiredGrayValue;
+        //------------End Desired Gray Value Setting------------
     } CameraSetting;
 
     std::string address;
@@ -81,19 +87,25 @@ public:
         cameraSetting.acquisitionMode = GX_ACQ_MODE_CONTINUOUS;
 
         //------------Trigger Setting------------
-        cameraSetting.triggerSwitch = GX_TRIGGER_SWITCH_ON;
+        cameraSetting.triggerSwitch = GX_TRIGGER_SWITCH_OFF;
         cameraSetting.activationEntry = GX_TRIGGER_ACTIVATION_FALLINGEDGE;
         cameraSetting.sourceEntry = GX_TRIGGER_SOURCE_LINE2;
         cameraSetting.selectorEntry = GX_ENUM_TRIGGER_SELECTOR_FRAME_START;
         cameraSetting.triggerDelay = 0;
-        cameraSetting.dRaisingValue = 0;
-        cameraSetting.dFallingValue = 0;
         //------------End Trigger Setting------------
 
         //------------Exposure Setting------------
         cameraSetting.exposureModeEntry = GX_EXPOSURE_MODE_TIMED;
         cameraSetting.exposureTimeEntry = GX_EXPOSURE_TIME_MODE_STANDARD;
+        cameraSetting.minShutterRange = 20;
+        cameraSetting.maxShutterRange = 27000;
+        cameraSetting.exposureAutoEntry = GX_EXPOSURE_AUTO_CONTINUOUS;
+        cameraSetting.exposureDelayValue = 2.0;
         //------------End Exposure Setting------------
+
+        //------------Desired Gray Value Setting------------
+        cameraSetting.desiredGrayValue = 120;
+        //------------End Desired Gray Value Setting------------
     }
 
     void OpenDevice();

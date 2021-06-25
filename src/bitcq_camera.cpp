@@ -55,7 +55,7 @@ void bitcq_camera::Spin()
             ROS_INFO("Hik_Camera was not supported!\n");
         }
 
-	    //cv::resize(image,image,cv::Size(200,100));
+	    cv::resize(image,image,cv::Size(640,480));
 
         PublishImage(image);
 
