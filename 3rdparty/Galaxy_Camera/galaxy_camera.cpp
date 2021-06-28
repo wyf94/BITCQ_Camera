@@ -122,14 +122,14 @@ void galaxy_camera::FunctionSetting()
     //Set trigger switch
     status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_MODE, cameraSetting.triggerSwitch);
     GX_VERIFY_EXIT(status);
-    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_ACTIVATION, cameraSetting.activationEntry);
+    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_ACTIVATION, cameraSetting.triggerActivation);
     GX_VERIFY_EXIT(status);
-    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_SOURCE, cameraSetting.sourceEntry);
+    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_SOURCE, cameraSetting.triggerSource);
     GX_VERIFY_EXIT(status);
-    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_SELECTOR, cameraSetting.selectorEntry);
+    status = GXSetEnum(hDevice, GX_ENUM_TRIGGER_SELECTOR, cameraSetting.triggerSelector);
     GX_VERIFY_EXIT(status);
-    // status = GXSetEnum(hDevice, GX_FLOAT_TRIGGER_DELAY, cameraSetting.triggerDelay);
-    // GX_VERIFY_EXIT(status); WRONG
+    status = GXSetFloat(hDevice, GX_FLOAT_TRIGGER_DELAY, cameraSetting.triggerDelay);
+    GX_VERIFY_EXIT(status);
 
     //Get rising edge filter setting range
     GX_FLOAT_RANGE raisingRange;
@@ -149,33 +149,33 @@ void galaxy_camera::FunctionSetting()
 
     //------------Exposure Setting------------
     //Set exposure mode
-    status = GXSetEnum(hDevice, GX_ENUM_EXPOSURE_MODE, cameraSetting.exposureModeEntry);
+    status = GXSetEnum(hDevice, GX_ENUM_EXPOSURE_MODE, cameraSetting.exposureMode);
     GX_VERIFY_EXIT(status);
     //Set exposure time mode
-    status = GXSetEnum(hDevice, GX_ENUM_EXPOSURE_TIME_MODE, cameraSetting.exposureTimeEntry);
-    GX_VERIFY_EXIT(status);
+    // status = GXSetEnum(hDevice, GX_ENUM_EXPOSURE_TIME_MODE, cameraSetting.exposureTimeMode);
+    // GX_VERIFY_EXIT(status);
 
     //Set exposure delay
     status = GXSetFloat(hDevice, GX_FLOAT_EXPOSURE_DELAY, cameraSetting.exposureDelayValue);
 
-    if(cameraSetting.exposureModeEntry == GX_EXPOSURE_MODE_TIMED)
+    if(cameraSetting.exposureMode == GX_EXPOSURE_MODE_TIMED)
     {
         //Set continuous auto exposure
-        status = GXSetEnum(hDevice, GX_ENUM_EXPOSURE_AUTO, cameraSetting.exposureAutoEntry);
+        status = GXSetEnum(hDevice, GX_ENUM_EXPOSURE_AUTO, cameraSetting.exposureAuto);
         GX_VERIFY_EXIT(status);
 
-        if(cameraSetting.exposureAutoEntry == GX_EXPOSURE_AUTO_OFF)
+        if(cameraSetting.exposureAuto == GX_EXPOSURE_AUTO_OFF)
         {
             //Set exposure value
-            status = GXSetFloat(hDevice, GX_FLOAT_EXPOSURE_TIME, cameraSetting.maxShutterRange);
+            status = GXSetFloat(hDevice, GX_FLOAT_EXPOSURE_TIME, cameraSetting.maxAutoExposureValue);
         }
         else
         {
             //Set minimum auto exposure value
-            status = GXSetFloat(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, cameraSetting.minShutterRange); 
+            status = GXSetFloat(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, cameraSetting.minAutoExposureValue); 
             GX_VERIFY_EXIT(status);
             //Set maximum auto exposure value
-            status = GXSetFloat(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, cameraSetting.maxShutterRange); 
+            status = GXSetFloat(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, cameraSetting.maxAutoExposureValue); 
             GX_VERIFY_EXIT(status);
         }
     }
@@ -184,42 +184,97 @@ void galaxy_camera::FunctionSetting()
     //------------Desired Gray Value Setting------------
     status = GXSetInt(hDevice, GX_INT_GRAY_VALUE, cameraSetting.desiredGrayValue);
     GX_VERIFY_EXIT(status);
+    //Set automatic function lighting environment
+    // status = GXSetEnum(hDevice, GX_ENUM_AA_LIGHT_ENVIRMENT, aaLightEnvirment);
+    // GX_VERIFY_EXIT(status);
     //------------End Desired Gray Value Setting------------
 
-    //set AutoGain mode and max_min
-    status = GXSetEnum(hDevice, GX_ENUM_GAIN_SELECTOR, GX_GAIN_SELECTOR_ALL);
+    //------------Frame Rate Mode Setting------------
+    //Enable acquisition frame rate adjustment mode
+    status = GXSetEnum(hDevice, GX_ENUM_ACQUISITION_FRAME_RATE_MODE, cameraSetting.acquisitionFrameRateMode);
     GX_VERIFY_EXIT(status);
-    status = GXSetEnum(hDevice, GX_ENUM_GAIN_AUTO, GX_GAIN_AUTO_CONTINUOUS);
+    //Set acquisition frame rate
+    status = GXSetFloat(hDevice, GX_FLOAT_ACQUISITION_FRAME_RATE, cameraSetting.acquisitionFrameRate);
     GX_VERIFY_EXIT(status);
-    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_GAIN_MIN, 0.0000); //0-24
+    //------------End Frame Rate Mode Setting------------
+
+    //------------Digital IO Control Setting------------
+    //Line Select
+    status = GXSetEnum(hDevice, GX_ENUM_LINE_SELECTOR, cameraSetting.lineSelector);
     GX_VERIFY_EXIT(status);
-    status = GXSetFloat(hDevice, GX_FLOAT_AUTO_GAIN_MAX, 20.0000); //0-24
+    //Set line mode
+    status = GXSetEnum(hDevice, GX_ENUM_LINE_MODE, cameraSetting.lineMode);
+    GX_VERIFY_EXIT(status);
+    //Set Line level inversion
+    status = GXSetBool(hDevice, GX_BOOL_LINE_INVERTER, cameraSetting.boolLineInverter);
+    GX_VERIFY_EXIT(status);
+    //Set Line source
+    status = GXSetEnum(hDevice, GX_ENUM_LINE_SOURCE, cameraSetting.lineSource);
     GX_VERIFY_EXIT(status);
 
+    if(cameraSetting.lineSource == 2 || 
+        cameraSetting.lineSource == 3 || 
+        cameraSetting.lineSource == 4 || 
+        cameraSetting.lineSource == 9 || 
+        cameraSetting.lineSource == 10 || 
+        cameraSetting.lineSource == 11 || 
+        cameraSetting.lineSource == 12)
+    {
+        status = GXSetEnum(hDevice,GX_ENUM_USER_OUTPUT_SELECTOR, cameraSetting.userOutputSelector);
+        status = GXSetBool(hDevice, GX_BOOL_USER_OUTPUT_VALUE, cameraSetting.boolUserOutputValue);
+        GX_VERIFY_EXIT(status);
+    }
+    //------------End Digital IO Control Setting------------
+
+    //------------Analog Control Setting------------
+    //Set gain channel type
+    status = GXSetEnum(hDevice, GX_ENUM_GAIN_SELECTOR, cameraSetting.gainSelector);
+    GX_VERIFY_EXIT(status);
+    //Set gain type
+    status = GXSetEnum(hDevice, GX_ENUM_GAIN_AUTO, cameraSetting.gainAuto);
+    GX_VERIFY_EXIT(status);
+
+    if(cameraSetting.gainAuto == GX_GAIN_AUTO_OFF)
+    {
+        status = GXSetFloat(hDevice, GX_FLOAT_GAIN, cameraSetting.gainValue);
+        GX_VERIFY_EXIT(status);
+    }
+    else
+    {
+        status = GXSetFloat(hDevice, GX_FLOAT_AUTO_GAIN_MIN, cameraSetting.minAutoGainValue);
+        status = GXSetFloat(hDevice, GX_FLOAT_AUTO_GAIN_MAX, cameraSetting.maxAutoGainValue);
+        GX_VERIFY_EXIT(status);
+    }
+    //------------End Analog Control Setting------------
+
+    //------------Balance Ratio Setting------------
     if (bColorFilter)
     {
-        printf("This is a color camera! \n");
-        //white balance
-        status = GXSetEnum(hDevice, GX_ENUM_BALANCE_RATIO_SELECTOR, GX_BALANCE_RATIO_SELECTOR_BLUE);
+        //Set continuous automatic white balance
+        status = GXSetEnum(hDevice, GX_ENUM_BALANCE_WHITE_AUTO, cameraSetting.balanceWhiteAuto);
         GX_VERIFY_EXIT(status);
-        status = GXSetEnum(hDevice, GX_ENUM_BALANCE_WHITE_AUTO, GX_BALANCE_WHITE_AUTO_CONTINUOUS);
+        //Select white balance channel
+        status = GXSetEnum(hDevice, GX_ENUM_BALANCE_RATIO_SELECTOR, cameraSetting.balanceRatioSelector);
         GX_VERIFY_EXIT(status);
     }
 
-    //acquisition frame rate
-    status = GXSetFloat(hDevice, GX_FLOAT_ACQUISITION_FRAME_RATE, fps);
+    //Set automatic white balance lighting environment
+    status = GXSetEnum(hDevice, GX_ENUM_AWB_LAMP_HOUSE, cameraSetting.awbLampHouse);
     GX_VERIFY_EXIT(status);
+    //Set ambient light preset
+    // status = GXSetEnum(hDevice, GX_ENUM_LIGHT_SOURCE_PRESET, cameraSetting.lightSourcePreset);
+    // GX_VERIFY_EXIT(status);
 
-    //set GPIO output signal
-    status = GXSetEnum(hDevice, GX_ENUM_LINE_SELECTOR, GX_ENUM_LINE_SELECTOR_LINE3);
-    GX_VERIFY_EXIT(status);
-    status = GXSetEnum(hDevice, GX_ENUM_LINE_SOURCE, GX_ENUM_LINE_SOURCE_USEROUTPUT0);
-    GX_VERIFY_EXIT(status);
-    status = GXSetEnum(hDevice, GX_ENUM_LINE_MODE, GX_ENUM_LINE_MODE_OUTPUT);
-    GX_VERIFY_EXIT(status);
+    if(cameraSetting.balanceWhiteAuto == GX_BALANCE_WHITE_AUTO_OFF)
+    {
+        status = GXSetFloat(hDevice, GX_FLOAT_BALANCE_RATIO, cameraSetting.balanceRatio);
+        GX_VERIFY_EXIT(status);
+    }
+    //------------End Balance Ratio Setting------------
 
+    //------------Mining Parameter Setting------------
     //Set buffer quantity of acquisition queue
-    uint64_t nBufferNum = ACQ_BUFFER_NUM;
+    uint64_t nBufferNum = cameraSetting.acquisitionBufferNum;
     status = GXSetAcqusitionBufferNumber(hDevice, nBufferNum);
     GX_VERIFY_EXIT(status);
 
@@ -230,7 +285,7 @@ void galaxy_camera::FunctionSetting()
     if (bStreamTransferSize)
     {
         //Set size of data transfer block
-        status = GXSetInt(hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, ACQ_TRANSFER_SIZE);
+        status = GXSetInt(hDevice, GX_DS_INT_STREAM_TRANSFER_SIZE, cameraSetting.acquisitionTransferSize);
         GX_VERIFY_EXIT(status);
     }
 
@@ -241,36 +296,10 @@ void galaxy_camera::FunctionSetting()
     if (bStreamTransferNumberUrb)
     {
         //Set qty. of data transfer block
-        status = GXSetInt(hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, ACQ_TRANSFER_NUMBER_URB);
+        status = GXSetInt(hDevice, GX_DS_INT_STREAM_TRANSFER_NUMBER_URB, cameraSetting.acquisitionTransferNumberURB);
         GX_VERIFY_EXIT(status);
     }
-
-    // //Set automatic function lighting environment
-    // status = GXSetEnum(hDevice, GX_ENUM_AA_LIGHT_ENVIRMENT, GX_AA_LIGHT_ENVIRMENT_NATURELIGHT);
-    // GX_VERIFY_EXIT(status);
-
-    //获取期望灰度值调节范围
-    GX_INT_RANGE grayValueRange;
-    status = GXGetIntRange(hDevice, GX_INT_GRAY_VALUE, &grayValueRange);
-    //设置最小期望灰度值
-    status = GXSetInt(hDevice, GX_INT_GRAY_VALUE, grayValueRange.nMin);
-    //设置最大期望灰度值
-    status = GXSetInt(hDevice, GX_INT_GRAY_VALUE, grayValueRange.nMax);
-
-    // //获取调节范围
-    // GX_FLOAT_RANGE autoGainMinRange;
-    // GX_FLOAT_RANGE autoGainMaxRange;
-    // GX_FLOAT_RANGE autoExposureMinRange;
-    // GX_FLOAT_RANGE autoExposureMaxRange;
-    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_GAIN_MIN, &autoGainMinRange);
-    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_GAIN_MAX, &autoGainMaxRange);
-    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, &autoExposureMinRange);
-    // status = GXGetFloatRange(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, &autoExposureMaxRange);
-    // //设置调节边界值
-    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_GAIN_MIN, autoGainMinRange.dMin);
-    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_GAIN_MAX, autoGainMinRange.dMax);
-    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MIN, autoShutterMinRange.dMin);
-    // status = GXSetInt(hDevice, GX_FLOAT_AUTO_EXPOSURE_TIME_MAX, autoShutterMaxRange.dMax);
+    //------------End Mining Parameter Setting------------
 }
 
 void galaxy_camera::CloseDevice()
